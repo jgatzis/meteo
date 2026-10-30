@@ -1,0 +1,722 @@
+<title>Καιρός Ποδηλάτη</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap&subset=greek" rel="stylesheet">
+<style>
+/* Layout: toolbar, city search, verdict hero, clothing advice with rider figure, three measured cards with to-scale charts, hourly table, daily outlook. */
+:root{
+  --bg:#EDF1F6; --surface:#FFFFFF; --surface-2:#F4F7FB; --fg:#0E1B2E; --muted:#56667D; --line:#D5DDE8;
+  --accent:#1B64DA; --accent-fg:#FFFFFF;
+  --good:#1C9A5E; --warn:#E39A0B; --bad:#D8404B;
+  --good-bg:#E3F5EB; --warn-bg:#FDF0D3; --bad-bg:#FCE4E6;
+  --good-fg:#0E6139; --warn-fg:#7A4C00; --bad-fg:#8E1C26;
+  --skin:#E8B58E;
+  --shadow:0 1px 2px rgba(14,27,46,.06),0 8px 24px rgba(14,27,46,.06);
+  --font-display:'Fira Sans Condensed','IBM Plex Sans',system-ui,sans-serif;
+  --font-body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A1424; --surface:#111F35; --surface-2:#16294A; --fg:#E7EEF9; --muted:#9AAAC4; --line:#243756;
+    --accent:#5B9BFF; --accent-fg:#06101F;
+    --good:#34C079; --warn:#F2B640; --bad:#FF6672;
+    --good-bg:#12392A; --warn-bg:#3F3010; --bad-bg:#43161B;
+    --good-fg:#8CE6B5; --warn-fg:#F6CD7A; --bad-fg:#FFA4AB;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35); color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A1424; --surface:#111F35; --surface-2:#16294A; --fg:#E7EEF9; --muted:#9AAAC4; --line:#243756;
+  --accent:#5B9BFF; --accent-fg:#06101F;
+  --good:#34C079; --warn:#F2B640; --bad:#FF6672;
+  --good-bg:#12392A; --warn-bg:#3F3010; --bad-bg:#43161B;
+  --good-fg:#8CE6B5; --warn-fg:#F6CD7A; --bad-fg:#FFA4AB;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35); color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--fg); font-family:var(--font-body); font-size:16px; line-height:1.5;
+  padding-block:20px 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--font-display);margin:0;text-wrap:balance;line-height:1.15;letter-spacing:.005em}
+svg{display:block}
+.ic{width:1em;height:1em;flex:none}
+
+/* header + controls */
+.top{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.logo{width:40px;height:40px;border-radius:12px;background:var(--accent);color:var(--accent-fg);display:grid;place-items:center;font-size:24px;flex:none}
+.brand h1{font-size:clamp(22px,4.6vw,28px);font-weight:700}
+.brand small{display:block;color:var(--muted);font-size:13px;font-family:var(--font-body)}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+select,button,input{font:inherit;color:var(--fg)}
+select,.btn,.srow input{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 12px;min-height:40px}
+.btn{cursor:pointer;font-weight:500;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 55%,transparent);outline-offset:2px}
+.status{font-size:14px;color:var(--muted);min-height:1.4em}
+.search{display:flex;flex-direction:column;gap:6px}
+.search .lbl,.seg-lbl{font-weight:600;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.srow{display:flex;gap:8px;flex-wrap:wrap}
+.srow input{flex:1 1 240px;min-width:0}
+.results{list-style:none;margin:4px 0 0;padding:6px;display:flex;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.results[hidden]{display:none}
+.results button{width:100%;text-align:left;background:transparent;border:0;border-radius:8px;padding:8px 10px;cursor:pointer;display:flex;flex-direction:column}
+.results button:hover,.results button:focus-visible{background:var(--surface-2)}
+.results small{color:var(--muted)}
+.results .msg{padding:8px 10px;color:var(--muted);font-size:14px}
+.banner{background:var(--warn-bg);color:var(--warn-fg);border:1px solid var(--warn);border-radius:10px;padding:10px 14px;font-size:14px}
+.banner[hidden]{display:none}
+.seg-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;border-radius:7px;padding:6px 14px;font-weight:500;cursor:pointer;min-height:34px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
+
+/* surfaces */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+section.block{display:flex;flex-direction:column;gap:12px}
+section.block>h2{font-size:22px;font-weight:600}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:3px 12px 3px 10px;border-radius:99px;font-weight:600;font-size:13px;white-space:nowrap}
+.pill i{width:8px;height:8px;border-radius:50%;display:block}
+.pill.l0{background:var(--good-bg);color:var(--good-fg)}.pill.l0 i{background:var(--good)}
+.pill.l1{background:var(--warn-bg);color:var(--warn-fg)}.pill.l1 i{background:var(--warn)}
+.pill.l2{background:var(--bad-bg);color:var(--bad-fg)}.pill.l2 i{background:var(--bad)}
+.tile{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;font-size:32px;flex:none}
+.tile.l0{background:var(--good-bg);color:var(--good)}.tile.l1{background:var(--warn-bg);color:var(--warn)}.tile.l2{background:var(--bad-bg);color:var(--bad)}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:20px 28px;padding:22px 24px}
+.hero .main{display:flex;gap:18px;align-items:flex-start;min-width:0}
+.hero .tile{width:76px;height:76px;font-size:46px;border-radius:20px}
+.hero .txt{display:flex;flex-direction:column;gap:8px;min-width:0}
+.hero h2{font-size:clamp(26px,5.5vw,38px);font-weight:700}
+.hero p{margin:0}
+.why{color:var(--muted)}
+.best{display:flex;gap:10px;align-items:center;background:var(--good-bg);color:var(--good-fg);border-radius:10px;padding:9px 12px;font-weight:500;margin-top:4px}
+.best.none{background:var(--warn-bg);color:var(--warn-fg)}
+.best b{font-variant-numeric:tabular-nums}
+.temp{border-left:1px solid var(--line);padding-left:28px;display:flex;flex-direction:column;gap:6px;justify-content:center}
+.temp .cap{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.temp .num{font-family:var(--font-display);font-weight:700;font-size:56px;line-height:1;font-variant-numeric:tabular-nums}
+.temp .num sup{font-size:.5em;vertical-align:top;position:relative;top:.15em}
+.temp .rng{color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
+@media (max-width:760px){.hero{grid-template-columns:1fr;padding:18px}.temp{border-left:0;border-top:1px solid var(--line);padding:16px 0 0}}
+@media (max-width:420px){.hero .main{flex-direction:column}}
+
+/* clothing */
+.wear{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:20px 28px;padding:20px 22px;align-items:start}
+.wear .fig{width:100%;max-width:380px;height:auto;border-radius:14px;margin:0 auto}
+.wear .info{display:flex;flex-direction:column;gap:14px;min-width:0}
+.wear h3{font-size:20px;font-weight:600}
+.wear .lead{color:var(--muted);margin:0}
+.rows{display:grid;grid-template-columns:minmax(0,1fr);margin:0}
+.rows>div{display:grid;grid-template-columns:110px minmax(0,1fr);gap:4px 14px;padding:9px 0;border-top:1px solid var(--line)}
+.rows dt{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding-top:2px}
+.rows dd{margin:0}
+.carry{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.carry .cl{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-right:4px}
+.carry span.c{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:4px 10px;font-size:14px}
+.storm{grid-column:1/-1;display:flex;gap:14px;align-items:center;background:color-mix(in srgb,var(--accent) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:12px;padding:12px 16px}
+.storm .ic{font-size:32px;color:var(--accent)}
+.storm b{display:block;font-family:var(--font-display);font-size:24px;line-height:1.1}
+.storm span{color:var(--muted);font-size:14px}
+.stormtag{align-self:flex-start;background:color-mix(in srgb,var(--accent) 14%,var(--surface));color:var(--fg);border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:8px;padding:3px 10px;font-weight:600;font-size:13px}
+@media (max-width:640px){.wear{grid-template-columns:1fr}.rows>div{grid-template-columns:1fr}}
+
+/* metric cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px}
+.mcard{padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.mhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mhead .l{display:flex;align-items:center;gap:12px;min-width:0}
+.mhead h3{font-size:19px;font-weight:600}
+.mcard .tile{width:42px;height:42px;font-size:24px;border-radius:12px}
+.big{font-family:var(--font-display);font-weight:700;font-size:38px;line-height:1;font-variant-numeric:tabular-nums}
+.big small{font-size:15px;font-weight:500;color:var(--muted);font-family:var(--font-body);margin-left:4px}
+.sub{color:var(--muted);font-size:14px}
+.tip{margin:0;font-size:15px}
+.chartcap{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.chart{width:100%;height:auto;overflow:visible}
+.chart text{fill:var(--muted);font-size:10px;font-family:var(--font-body);font-variant-numeric:tabular-nums}
+.dir{display:inline-flex;align-items:center;gap:6px}
+.dir .ic{color:var(--accent)}
+
+/* tables */
+.scroll{overflow-x:auto}
+table{border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums;width:max-content;min-width:100%}
+th,td{padding:8px 9px;text-align:center;font-size:14px;white-space:nowrap;border-bottom:1px solid var(--line)}
+th.row{position:sticky;left:0;background:var(--surface);text-align:left;font-weight:600;z-index:1;border-right:1px solid var(--line);padding-inline:14px}
+tr:last-child td,tr:last-child th{border-bottom:0}
+tr.hd td{color:var(--muted);font-weight:600}
+td.l0{background:var(--good-bg);color:var(--good-fg)}td.l1{background:var(--warn-bg);color:var(--warn-fg)}td.l2{background:var(--bad-bg);color:var(--bad-fg)}
+td .ic{font-size:20px;margin:0 auto}
+td .arr{width:14px;height:14px;display:inline-block;vertical-align:-2px;margin-right:4px}
+td small{opacity:.85}
+
+.days{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.day{padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.day h3{font-size:18px;font-weight:600;text-transform:capitalize}
+.day dl{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:0;font-size:14px}
+.day dt{color:var(--muted)}.day dd{margin:0;font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+details{font-size:14px;color:var(--muted)}
+details summary{cursor:pointer;font-weight:600;color:var(--fg)}
+details ul{margin:8px 0 0;padding-left:20px}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M18.7 5.3l-1.4 1.4M6.7 17.3l-1.4 1.4"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18.5a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 10.5a4 4 0 0 1-.5 8Z"/></symbol>
+    <symbol id="i-rain" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 14.5a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 6.5a4 4 0 0 1-.5 8"/><path d="M8 17.5l-1 3M12.5 17.5l-1 3M17 17.5l-1 3"/></symbol>
+    <symbol id="i-fog" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 12.5a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 4.5a4 4 0 0 1-.5 8"/><path d="M3 16h18M6 20h14"/></symbol>
+    <symbol id="i-wind" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.6 4.6A2 2 0 1 1 11 8H2m10.6 11.4A2 2 0 1 0 14 16H2m15.7-8.3A2.5 2.5 0 1 1 19.5 12H2"/></symbol>
+    <symbol id="i-bike" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="16" r="3.5"/><circle cx="18.5" cy="16" r="3.5"/><path d="M5.5 16 9 8h6l3.5 8M9 8 12 16M8 6h3M14.5 8l1-2.5h2"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12s4-7.5 10.5-7.5S22.5 12 22.5 12 18.5 19.5 12 19.5 1.5 12 1.5 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11.5a7 7 0 0 0-14 0C5 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 16 16"><path d="M8 1.5 13.5 14 8 11 2.5 14Z" fill="currentColor"/></symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="logo"><svg class="ic" aria-hidden="true"><use href="#i-bike"/></svg></div>
+      <div><h1>Καιρός Ποδηλάτη</h1><small>Βροχή, ομίχλη, άνεμος και ντύσιμο</small></div>
+    </div>
+    <div class="tools">
+      <label for="city" style="position:absolute;left:-9999px">Πόλη</label>
+      <select id="city"></select>
+      <button class="btn" id="loc" type="button"><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg>Η τοποθεσία μου</button>
+      <button class="btn" id="refresh" type="button">Ανανέωση</button>
+    </div>
+  </header>
+
+  <form class="search" id="searchForm" role="search" autocomplete="off">
+    <label for="q" class="lbl">Οποιαδήποτε πόλη ή χωριό</label>
+    <div class="srow">
+      <input id="q" type="search" placeholder="π.χ. Κατερίνη, Λιβαδειά, Λονδίνο…" enterkeyhint="search">
+      <button class="btn primary" type="submit">Αναζήτηση</button>
+    </div>
+    <ul class="results" id="results" hidden></ul>
+  </form>
+
+  <div class="status" id="status" role="status">Φόρτωση πρόβλεψης…</div>
+  <div class="banner" id="banner" hidden></div>
+
+  <div class="seg-row" role="group" aria-label="Χρονικό διάστημα">
+    <span class="seg-lbl">Η βόλτα μου, επόμενες</span>
+    <div class="seg">
+      <button type="button" data-h="3" aria-pressed="false">3 ώρες</button>
+      <button type="button" data-h="6" aria-pressed="false">6 ώρες</button>
+      <button type="button" data-h="12" aria-pressed="true">12 ώρες</button>
+      <button type="button" data-h="24" aria-pressed="false">24 ώρες</button>
+    </div>
+  </div>
+
+  <div class="card hero" id="hero"></div>
+
+  <section class="block">
+    <h2>Τι να φορέσεις</h2>
+    <div class="card wear" id="wear"></div>
+  </section>
+
+  <section class="block">
+    <h2>Βροχή, ομίχλη και άνεμος</h2>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section class="block">
+    <h2>Ώρα με ώρα, 24 ώρες</h2>
+    <div class="card scroll" id="strip"></div>
+  </section>
+
+  <section class="block">
+    <h2>Επόμενες μέρες</h2>
+    <div class="days" id="days"></div>
+  </section>
+
+  <details>
+    <summary>Πώς βαθμολογούμε</summary>
+    <ul>
+      <li>Βροχή: «Προσοχή» από 35% πιθανότητα ή 0,2 mm/ώρα. «Αποφυγή» από 70% ή 1 mm/ώρα.</li>
+      <li>Ομίχλη: «Προσοχή» όταν η ορατότητα πέφτει κάτω από 5 χλμ. «Αποφυγή» κάτω από 1 χλμ.</li>
+      <li>Άνεμος: «Προσοχή» από 20 χλμ/ώρα ή ριπές 35. «Αποφυγή» από 30 χλμ/ώρα ή ριπές 50.</li>
+      <li>Η συνολική κρίση είναι η χειρότερη από τις τρεις.</li>
+      <li>Ντύσιμο: βασίζεται στη θερμοκρασία που αισθάνεσαι (με τον αέρα), στο διάστημα που διάλεξες. Είναι γενική πρόταση, προσαρμόσέ την στο πόσο ζεσταίνεσαι εσύ.</li>
+      <li>Δεδομένα καιρού και αναζήτησης πόλεων: Open-Meteo.</li>
+    </ul>
+  </details>
+</div>
+
+<script>
+(function(){
+  var $ = function(s){ return document.querySelector(s); };
+  var CITIES = [
+    {n:'Θεσσαλονίκη',la:40.64,lo:22.94},{n:'Αθήνα',la:37.98,lo:23.73},{n:'Λάρισα',la:39.64,lo:22.42},
+    {n:'Πάτρα',la:38.25,lo:21.73},{n:'Ηράκλειο',la:35.34,lo:25.14},{n:'Ιωάννινα',la:39.67,lo:20.85},
+    {n:'Βόλος',la:39.36,lo:22.94},{n:'Καβάλα',la:40.94,lo:24.41}
+  ];
+  var LV = ['Άνετα','Προσοχή','Αποφυγή'];
+  var COMP = ['Β','ΒΑ','Α','ΝΑ','Ν','ΝΔ','Δ','ΒΔ'];
+  var state = { city: CITIES[0], hours: [], horizon: 12, demo: false, custom: null };
+
+  function fmt(x, d){ d = d || 0; return Number(x).toLocaleString('el-GR',{maximumFractionDigits:d,minimumFractionDigits:d}); }
+  function rainLv(p,mm){ return (mm>=1||p>=70)?2:((mm>=0.2||p>=35)?1:0); }
+  function fogLv(v,c){ return (v<1000||c===45||c===48)?2:(v<5000?1:0); }
+  function windLv(w,g){ return (w>=30||g>=50)?2:((w>=20||g>=35)?1:0); }
+  function compass(d){ return COMP[Math.round((((d%360)+360)%360)/45)%8]; }
+  function km(v){ return v>=10000 ? '10+ χλμ' : fmt(v/1000,1)+' χλμ'; }
+  function hh(t){ return t.slice(11,16); }
+  function endLabel(t){ var h=(parseInt(t.slice(11,13),10)+1)%24; return (h<10?'0':'')+h+':00'; }
+  function ico(id){ return '<svg class="ic" aria-hidden="true"><use href="#'+id+'"/></svg>'; }
+  function pill(l){ return '<span class="pill l'+l+'"><i></i>'+LV[l]+'</span>'; }
+  function avg(a){ return a.reduce(function(s,x){return s+x;},0)/a.length; }
+
+  /* ---------- Rider figure (side view, road bike) ---------- */
+  function pt(p){ return p[0].toFixed(1)+' '+p[1].toFixed(1); }
+  function seg(a,b,w,c,op){ return '<path d="M'+pt(a)+'L'+pt(b)+'" stroke="'+c+'" stroke-width="'+w+'" stroke-linecap="round" fill="none"'+(op?' opacity="'+op+'"':'')+'/>'; }
+  function dist(a,b){ return Math.hypot(b[0]-a[0], b[1]-a[1]); }
+  function along(a,b,f){ return [a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f]; }
+  function limbCover(H,K,A,f,w1,w2,color){
+    var l1 = dist(H,K), l2 = dist(K,A), cut = f*(l1+l2);
+    return cut<=l1 ? seg(H, along(H,K,cut/l1), w1, color) : seg(H,K,w1,color) + seg(K, along(K,A,(cut-l1)/l2), w2, color);
+  }
+  function wheel(c){
+    var s = '<circle cx="'+c[0]+'" cy="'+c[1]+'" r="40" fill="none" stroke="#1B2433" stroke-width="4.2"/><circle cx="'+c[0]+'" cy="'+c[1]+'" r="35.5" fill="none" stroke="#8A9AB3" stroke-width="1.4"/>';
+    for(var i=0;i<16;i++){ var a=i*Math.PI/8; s += '<line x1="'+(c[0]+Math.cos(a)*3.5).toFixed(1)+'" y1="'+(c[1]+Math.sin(a)*3.5).toFixed(1)+'" x2="'+(c[0]+Math.cos(a)*35.5).toFixed(1)+'" y2="'+(c[1]+Math.sin(a)*35.5).toFixed(1)+'" stroke="#AEBBCF" stroke-width=".7"/>'; }
+    return s + '<circle cx="'+c[0]+'" cy="'+c[1]+'" r="4" fill="#1B2433"/>';
+  }
+  function fender(c,a1,a2){
+    var r=44, p1=[c[0]+Math.cos(a1)*r, c[1]+Math.sin(a1)*r], p2=[c[0]+Math.cos(a2)*r, c[1]+Math.sin(a2)*r];
+    return '<path d="M'+pt(p1)+'A'+r+' '+r+' 0 0 1 '+pt(p2)+'" fill="none" stroke="#3C4C66" stroke-width="3.2" stroke-linecap="round"/>';
+  }
+  function riderSVG(k){
+    var skin='var(--skin)', farSkin='#C99674', dark='#1B2433', slate='#3C4C66', frame='#0F2A5C', alu='#8A9AB3';
+    var Hp=[122,70], Sh=[171,35], El=[187,66], Hand=[210,92];
+    var KnN=[162.9,98.8], AnN=[153,149], KnF=[147.6,112.9], AnF=[111,149];
+    var BB=[146,156], RW=[98,150], FW=[222,150], SC=[128.7,98], HTt=[192,98], HTb=[197,115];
+    var s = '<svg class="fig" viewBox="0 0 320 220" role="img" aria-label="Προτεινόμενο ντύσιμο για ποδηλασία">';
+    s += '<defs><linearGradient id="skyg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EAF1FA"/><stop offset="1" stop-color="#CBD9EB"/></linearGradient></defs>';
+    s += '<rect width="320" height="220" rx="14" fill="url(#skyg)"/><rect y="192" width="320" height="28" fill="#B9C9DE"/><path d="M0 192H320" stroke="#A5B7CE" stroke-width="1.5"/>';
+    if(!k.rain && !k.fog) s += '<circle cx="278" cy="38" r="26" fill="#FFD166" opacity=".28"/><circle cx="278" cy="38" r="14" fill="#FFC244"/>';
+    if(k.rain){
+      s += '<g fill="#9DAEC7"><path d="M24 44a11 11 0 0 1 13-11 15 15 0 0 1 29 3 9 9 0 0 1-2 18H31a9 9 0 0 1-7-10Z"/><path d="M236 36a9 9 0 0 1 11-9 13 13 0 0 1 24 3 8 8 0 0 1-2 15h-26a8 8 0 0 1-7-9Z" opacity=".85"/></g>';
+      for(var i=0;i<16;i++){ s += '<line x1="'+(30+i*18)+'" y1="'+(62+(i%4)*14)+'" x2="'+(25+i*18)+'" y2="'+(76+(i%4)*14)+'" stroke="#4F86D6" stroke-width="2" stroke-linecap="round" opacity=".7"/>'; }
+    }
+    if(k.wind){ s += '<g stroke="#7C8CA6" stroke-width="2.4" stroke-linecap="round" fill="none"><path d="M10 96h36M20 110h44M6 124h28"/></g>'; }
+    s += '<ellipse cx="160" cy="193" rx="108" ry="5" fill="#0E1B2E" opacity=".16"/>';
+
+    /* far side: leg, crank, shoe */
+    s += seg(Hp,KnF,18,farSkin) + seg(KnF,AnF,12,farSkin);
+    s += limbCover(Hp,KnF,AnF,k.legs,19,13,'#141B27');
+    s += seg(BB,[125.4,156],3.2,'#5A6A85');
+    s += '<path d="M102 153L106 145L114 145L116 150L131 154Q135 156 132 159L102 159Z" fill="#141B27"/>';
+    if(k.cover) s += '<path d="M100 153L104 136L116 136L118 148L133 154Q137 157 133 160L100 160Z" fill="#0E1B2E"/>';
+
+    /* bike */
+    s += wheel(RW) + wheel(FW);
+    if(k.rain){ s += fender(RW,-2.9,-0.55) + fender(FW,-2.6,-0.5); }
+    s += '<g fill="none" stroke-linecap="round" stroke-linejoin="round">';
+    s += '<path d="M'+pt(RW)+'L'+pt(BB)+'" stroke="'+frame+'" stroke-width="4"/>';
+    s += '<path d="M'+pt(RW)+'L'+pt(SC)+'" stroke="'+frame+'" stroke-width="3"/>';
+    s += '<path d="M'+pt(BB)+'L'+pt(SC)+'" stroke="'+frame+'" stroke-width="4.6"/>';
+    s += '<path d="M'+pt(SC)+'L123 78" stroke="'+alu+'" stroke-width="3"/>';
+    s += '<path d="M131 99.5L192 98.5" stroke="'+frame+'" stroke-width="4.2"/>';
+    s += '<path d="M'+pt(HTb)+'L'+pt(BB)+'" stroke="#1B64DA" stroke-width="5.4"/>';
+    s += '<path d="M'+pt(HTt)+'L'+pt(HTb)+'" stroke="'+frame+'" stroke-width="6.4"/>';
+    s += '<path d="M'+pt(HTb)+'L'+pt(FW)+'" stroke="'+frame+'" stroke-width="3.6"/>';
+    s += '<path d="M192 98L191 92L203 91" stroke="'+alu+'" stroke-width="4"/>';
+    s += '<path d="M203 91.5H214C224 91.5 226 105 217 109.5L206 109.5" stroke="#0E1B2E" stroke-width="3.4"/>';
+    s += '</g>';
+    s += '<path d="M168 128L175 123" stroke="#9FB2CC" stroke-width="7" stroke-linecap="round"/><path d="M168 128L175 123" stroke="#FFFFFF" stroke-width="4.6" stroke-linecap="round"/>';
+    s += '<circle cx="'+BB[0]+'" cy="'+BB[1]+'" r="11" fill="none" stroke="'+slate+'" stroke-width="2.4"/><circle cx="'+RW[0]+'" cy="'+RW[1]+'" r="6.5" fill="'+alu+'"/>';
+    s += '<path d="M146 145L98 143.5M146 167L98 156.5" stroke="#5A6A85" stroke-width="1.2"/>';
+    s += '<path d="M109 76L134 74.8C138 74.7 138 78.6 133.5 79L112 79.4C107.5 79.4 106 76.4 109 76Z" fill="#0E1B2E"/>';
+    if(k.fog){
+      s += '<path d="M219 89L268 74V106Z" fill="#FFE9A8" opacity=".5"/><rect x="209" y="84" width="9" height="6" rx="2" fill="#0E1B2E"/><rect x="117" y="82" width="7" height="5" rx="2" fill="#E5333E"/>';
+    }
+
+    /* near leg */
+    s += seg(Hp,KnN,18,skin) + seg(KnN,AnN,12,skin);
+    s += limbCover(Hp,KnN,AnN,k.legs,19,13,dark);
+    s += '<circle cx="'+Hp[0]+'" cy="'+Hp[1]+'" r="12" fill="'+dark+'"/>';
+    if(k.refl){ var p=along(KnN,AnN,.55); s += seg([p[0]-6,p[1]-3],[p[0]+6,p[1]+3],3.4,'#EEF3F8'); }
+    s += seg(BB,[166.6,156],3.6,slate);
+    s += '<rect x="161" y="155" width="11" height="3.6" rx="1.6" fill="#0E1B2E"/>';
+    s += '<path d="M144 153L148 145L156 145L158 150L173 154Q177 156 174 159L144 159Z" fill="#0E1B2E"/><path d="M149 152L160 154.5" stroke="#1B64DA" stroke-width="2" stroke-linecap="round"/>';
+    if(k.cover) s += '<path d="M142 153L146 136L158 136L160 148L175 154Q179 157 175 160L142 160Z" fill="#0E1B2E"/><path d="M146 143H159" stroke="'+(k.refl?'#EEF3F8':'#1B64DA')+'" stroke-width="2.4"/>';
+
+    /* torso */
+    var torso = 'M'+pt(Hp)+'Q139 43 '+pt(Sh);
+    s += '<path d="'+torso+'" stroke="'+k.jersey+'" stroke-width="25" stroke-linecap="round" fill="none"/>';
+    if(k.jacket==='rain' || k.jacket==='wind'){
+      var jc = k.jacket==='rain' ? '#F26B21' : '#4C5F7D';
+      s += '<path d="'+torso+'" stroke="'+jc+'" stroke-width="28" stroke-linecap="round" fill="none"/>';
+      s += '<path d="M127 63Q124 54 134 50" stroke="'+jc+'" stroke-width="8" stroke-linecap="round" fill="none" opacity=".9"/>';
+    } else if(k.jacket==='gilet'){
+      s += '<path d="'+torso+'" stroke="#4C5F7D" stroke-width="26" stroke-linecap="round" fill="none"/>';
+    }
+    if(k.refl){ s += seg([142,54],[154,62],3.6,'#EEF3F8'); }
+
+    /* neck + head */
+    s += seg([170,34],[181,27],9,skin);
+    if(k.gaiter) s += seg([169,35],[180,28],11,slate);
+    s += '<circle cx="186" cy="24" r="10.5" fill="'+skin+'"/><path d="M195.5 23.5L199 27L195 28Z" fill="'+skin+'"/>';
+    if(k.cap) s += '<ellipse cx="184" cy="18" rx="14.5" ry="9" transform="rotate(-18 184 18)" fill="'+slate+'"/><circle cx="182" cy="27" r="4.4" fill="'+slate+'"/>';
+    s += '<path d="M190.5 22.6L199 21.4L199.4 25.6L191 26.6Z" fill="#0E1B2E" opacity=".92"/>';
+    s += '<ellipse cx="183" cy="16.6" rx="14" ry="7.6" transform="rotate(-18 183 16.6)" fill="#FFFFFF" stroke="#9FB2CC" stroke-width="1.2"/>';
+    s += '<path d="M176 13.5Q183 8.5 191 11.5" stroke="#1B64DA" stroke-width="2.2" stroke-linecap="round" fill="none"/>';
+
+    /* arm + hand */
+    s += seg(Sh,El,11,skin) + seg(El,Hand,10,skin);
+    s += limbCover(Sh,El,Hand,k.sleeve,12.5,11.5,k.jersey);
+    if(k.jacket==='rain' || k.jacket==='wind'){ s += seg(Sh,El,13.5,k.jacket==='rain' ? '#F26B21' : '#4C5F7D') + seg(El,Hand,12.5,k.jacket==='rain' ? '#F26B21' : '#4C5F7D'); }
+    var gc = k.glove===0 ? skin : (k.glove===1 ? slate : dark);
+    s += '<ellipse cx="212" cy="91" rx="'+(k.glove===2?8:7)+'" ry="'+(k.glove===2?6:5.2)+'" fill="'+gc+'"/>';
+
+    if(k.fog){ s += '<g fill="#FFFFFF" opacity=".4"><rect x="0" y="146" width="320" height="20" rx="10"/><rect x="30" y="172" width="290" height="16" rx="8"/></g>'; }
+    return s + '</svg>';
+  }
+
+  /* ---------- Clothing logic ---------- */
+  var TIER_NAME = ['Ζέστη','Ζεστός καιρός','Ήπιος καιρός','Δροσιά','Κρύο','Πολύ κρύο'];
+  function tierOf(t){ return t>=26?0 : t>=20?1 : t>=15?2 : t>=10?3 : t>=5?4 : 5; }
+  function clothing(t, r, f, w, swing){
+    var ti = tierOf(t);
+    var k = {sleeve:.38, legs:.38, jersey:'#2F6FED', glove:0, cap:false, gaiter:false, jacket:'none', cover:false, refl:f>=1, rain:r>=1, fog:f>=1, wind:w>=1};
+    if(ti===0) k.jersey = '#6FA8FF';
+    if(ti===3){ k.sleeve=1; k.legs=.72; k.glove=1; k.cap = t<13; }
+    if(ti===4){ k.sleeve=1; k.legs=1; k.glove=2; k.cap=true; k.cover=true; k.jersey='#1D4FB8'; }
+    if(ti===5){ k.sleeve=1; k.legs=1; k.glove=2; k.cap=true; k.gaiter=true; k.cover=true; k.jersey='#1D4FB8'; k.jacket='wind'; }
+    if(r>=1){ k.jacket='rain'; if(r===2 || ti>=3) k.cover=true; }
+    else if(w>=1 && ti>=2 && k.jacket==='none'){ k.jacket = ti>=3 ? 'wind' : 'gilet'; }
+
+    var head = ['Κράνος με καλό αερισμό','Κράνος με καλό αερισμό','Κράνος με καλό αερισμό',
+      k.cap ? 'Κράνος με λεπτό σκουφάκι ή headband στα αυτιά' : 'Κράνος και headband για τον ιδρώτα',
+      'Κράνος με θερμικό σκουφάκι','Κράνος με θερμικό σκουφάκι και λαιμός (neck gaiter)'][ti];
+    var eyes = (r>=1||f>=1) ? 'Γυαλιά με διάφανους φακούς' : (ti<=2 ? 'Γυαλιά ηλίου' : 'Γυαλιά ποδηλασίας με ανοιχτούς φακούς');
+    var torso = ['Ελαφριά φανέλα με κοντά μανίκια, ανοιχτό χρώμα','Φανέλα με κοντά μανίκια','Φανέλα με κοντά μανίκια. Βάλε arm warmers στην τσέπη',
+      'Φανέλα με μακριά μανίκια ή κοντή με arm warmers, πάνω από λεπτό base layer','Θερμική φανέλα με μακριά μανίκια πάνω από base layer','Θερμική φανέλα πάνω από χοντρό base layer'][ti];
+    var outer;
+    if(k.jacket==='rain') outer = ti<=2 ? 'Ελαφρύ αδιάβροχο που διπλώνει στην τσέπη' : 'Αδιάβροχο μπουφάν με αναπνοή, καλύτερα έντονου χρώματος';
+    else if(k.jacket==='wind') outer = ti>=5 ? 'Θερμικό αντιανεμικό μπουφάν' : 'Αντιανεμικό μπουφάν που διπλώνει';
+    else if(k.jacket==='gilet') outer = 'Αντιανεμικό γιλέκο. Κρατά ζεστό τον κορμό και διπλώνει στην τσέπη';
+    else outer = 'Δεν χρειάζεται';
+    var hands = ['Χωρίς γάντια ή με ανοιχτά γάντια','Χωρίς γάντια ή με ανοιχτά γάντια','Ανοιχτά γάντια','Λεπτά γάντια ολόκληρου δαχτύλου','Χειμερινά γάντια','Ισοθερμικά χειμερινά γάντια'][ti] + (r>=1 ? '. Πάρε εφεδρικό ζευγάρι στην τσέπη' : '');
+    var legs = ['Σορτς με ένθετο (bib shorts)','Σορτς με ένθετο (bib shorts)','Σορτς με ένθετο (bib shorts)',
+      'Σορτς με knee warmers ή 3/4 κολάν','Θερμικό κολάν με τιράντες (bib tights)','Χειμερινό θερμικό κολάν με επένδυση'][ti];
+    var feet = k.cover ? ('Μάλλινες κάλτσες και καλύμματα παπουτσιών (overshoes)' + (r>=1 ? ', καλύτερα αδιάβροχα' : '')) : (ti<=2 ? 'Κανονικές αναπνεύσιμες κάλτσες' : 'Κάλτσες μεσαίου πάχους');
+
+    var carry = [];
+    if(ti===0) carry.push('Επιπλέον παγούρι','Αντηλιακό');
+    else if(ti===1) carry.push('Αντηλιακό');
+    if(ti===2) carry.push('Arm warmers','Γιλέκο στην τσέπη');
+    if(r>=1) carry.push('Φτερά ποδηλάτου','Θήκη για το κινητό');
+    if(f>=1) carry.push('Φώτα μπροστά και πίσω, σταθερά','Ανακλαστικό γιλέκο');
+    if(w>=1 && ti<=1) carry.push('Αντιανεμικό που διπλώνει');
+    if(w===2) carry.push('Στενή εφαρμογή ρούχων, χωρίς φαρδιά πράγματα');
+    var note = '';
+    if(swing>=8) note = 'Η αίσθηση θερμοκρασίας αλλάζει πολύ μέσα στη βόλτα. Ντύσου σε στρώσεις που βγάζεις εύκολα.';
+    else if(ti>=2 && ti<=4) note = 'Στην αρχή θα κρυώνεις λίγο. Μετά από 10 λεπτά ζεσταίνεσαι.';
+    return {ti:ti, kit:k, rows:[['Κεφάλι', head+'. '+eyes],['Κορμός',torso],['Εξωτερικό',outer],['Χέρια',hands],['Πόδια',legs],['Παπούτσια',feet]], carry:carry, note:note};
+  }
+
+  /* ---------- Chart (drawn to scale) ---------- */
+  function chart(o){
+    var W=340,H=136,L=40,R=8,T=8,B=24,pw=W-L-R,ph=H-T-B,n=o.vals.length,bw=pw/n,w=Math.max(2,bw*0.66);
+    function y(v){ return T+ph*(1-Math.min(Math.max(v,0),o.ymax)/o.ymax); }
+    var s = '<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+o.aria+'">';
+    o.ticks.forEach(function(tk){
+      var isT = o.thr.indexOf(tk)>=0;
+      s += '<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y(tk)+'" y2="'+y(tk)+'" stroke="'+(isT ? (tk===o.thr[o.thr.length-1] ? 'var(--bad)' : 'var(--warn)') : 'var(--line)')+'" stroke-width="1"'+(isT?' stroke-dasharray="4 3"':'')+'/>';
+      s += '<text x="'+(L-6)+'" y="'+(y(tk)+3.5)+'" text-anchor="end">'+o.tickFmt(tk)+'</text>';
+    });
+    o.vals.forEach(function(v,i){
+      var yy = y(v), hgt = Math.max(1.5, T+ph-yy), col = ['var(--good)','var(--warn)','var(--bad)'][o.lvs[i]];
+      s += '<rect x="'+(L+i*bw+(bw-w)/2).toFixed(1)+'" y="'+yy.toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+hgt.toFixed(1)+'" rx="'+Math.min(2.5,w/2).toFixed(1)+'" fill="'+col+'"><title>'+o.labs[i]+'</title></rect>';
+    });
+    var mid = Math.floor(n/2);
+    s += '<text x="'+L+'" y="'+(H-6)+'" text-anchor="start">'+o.t0+'</text>';
+    if(n>=6) s += '<text x="'+(L+mid*bw+bw/2).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle">'+o.tm+'</text>';
+    s += '<text x="'+(W-R)+'" y="'+(H-6)+'" text-anchor="end">'+o.t1+'</text>';
+    return s + '</svg>';
+  }
+
+  /* ---------- Data ---------- */
+  function build(raw){
+    var h = raw.hourly, off = raw.utc_offset_seconds || 0, now = Date.now() + off*1000, out = [];
+    for(var i=0;i<h.time.length;i++){
+      var ts = Date.parse(h.time[i]+':00Z');
+      if(ts <= now - 3600000) continue;
+      var vis = h.visibility[i]; if(vis==null) vis = 24000;
+      var temp = +h.temperature_2m[i];
+      var o = {
+        t:h.time[i], temp:temp, feels:+(h.apparent_temperature && h.apparent_temperature[i]!=null ? h.apparent_temperature[i] : temp),
+        pop:+(h.precipitation_probability[i]||0), mm:+(h.precipitation[i]||0),
+        code:+(h.weather_code[i]||0), vis:+vis, wind:+(h.wind_speed_10m[i]||0), dir:+(h.wind_direction_10m[i]||0), gust:+(h.wind_gusts_10m[i]||0)
+      };
+      o.r = rainLv(o.pop,o.mm); o.f = fogLv(o.vis,o.code); o.w = windLv(o.wind,o.gust); o.o = Math.max(o.r,o.f,o.w);
+      out.push(o);
+    }
+    return out;
+  }
+  function demoRaw(){
+    var off = -new Date().getTimezoneOffset()*60, base = new Date(); base.setMinutes(0,0,0);
+    var cur = base.getHours(), b0 = base.getTime() + off*1000;
+    var H = {time:[],temperature_2m:[],apparent_temperature:[],precipitation_probability:[],precipitation:[],weather_code:[],visibility:[],wind_speed_10m:[],wind_direction_10m:[],wind_gusts_10m:[]};
+    for(var i=0;i<72;i++){
+      var d = new Date(b0 + i*3600000), hr = d.getUTCHours(), day = Math.floor((i+cur)/24);
+      var fogS = [0.2,0.95,0.35][day] || 0, fog = fogS*Math.exp(-Math.pow((hr-6.5)/1.9,2));
+      var pop = Math.min(100, Math.round(8 + 85*Math.exp(-Math.pow((i-5)/3,2)) + 45*Math.exp(-Math.pow((i-41)/4,2))));
+      var mm = pop>40 ? Math.round((pop-40)/38*10)/10 : 0;
+      var vis = Math.min(24000 - fog*23200, 14000 - pop*80);
+      var wind = 12 + 12*Math.exp(-Math.pow((i-9)/3,2)) + 22*Math.exp(-Math.pow((i-34)/4,2)) + 3*Math.sin(i);
+      var temp = 13 + 6*Math.sin((hr-9)*Math.PI/12);
+      H.time.push(d.toISOString().slice(0,16));
+      H.temperature_2m.push(Math.round(temp*10)/10);
+      H.apparent_temperature.push(Math.round((temp - 0.14*wind)*10)/10);
+      H.precipitation_probability.push(pop); H.precipitation.push(mm);
+      H.weather_code.push(fog>0.5 ? 45 : (mm>=0.2 ? 61 : (pop>35 ? 3 : 1)));
+      H.visibility.push(Math.round(vis/100)*100);
+      H.wind_speed_10m.push(Math.round(wind*10)/10); H.wind_direction_10m.push(Math.round(300+40*Math.sin(i/9)));
+      H.wind_gusts_10m.push(Math.round((wind*1.55+3)*10)/10);
+    }
+    return {hourly:H, utc_offset_seconds:off};
+  }
+  function load(){
+    var c = state.city;
+    $('#status').textContent = 'Φόρτωση πρόβλεψης για ' + c.n + '…';
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude='+c.la+'&longitude='+c.lo+
+      '&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,visibility,wind_speed_10m,wind_direction_10m,wind_gusts_10m&timezone=auto&forecast_days=3';
+    var ctl = ('AbortController' in window) ? new AbortController() : null;
+    var timer = setTimeout(function(){ if(ctl) ctl.abort(); }, 8000);
+    var p;
+    try { p = fetch(url, ctl ? {signal:ctl.signal} : undefined).then(function(r){ if(!r.ok) throw new Error('http'); return r.json(); }); }
+    catch(e){ p = Promise.reject(e); }
+    p.then(function(raw){ clearTimeout(timer); state.demo = false; state.hours = build(raw); })
+     .catch(function(){ clearTimeout(timer); state.demo = true; state.hours = build(demoRaw()); })
+     .then(function(){ render(); });
+  }
+
+  /* ---------- Rendering ---------- */
+  function worstIdx(hrs, score){
+    var bi = 0, bs = -Infinity;
+    for(var i=0;i<hrs.length;i++){ var s = score(hrs[i]); if(s>bs){ bs=s; bi=i; } }
+    return bi;
+  }
+  function bestWindow(hrs){
+    var span = hrs.slice(0,24), pick = null, mode = 0;
+    for(mode=0; mode<=1 && !pick; mode++){
+      var run = [], best = [];
+      for(var i=0;i<=span.length;i++){
+        if(i<span.length && span[i].o<=mode){ run.push(span[i]); }
+        else { if(run.length>=2 && run.length>best.length) best = run; run = []; }
+      }
+      if(best.length) pick = {list:best, mode:mode};
+    }
+    return pick;
+  }
+  var TIPS = {
+    r:['Δεν περιμένουμε βροχή. Μπορείς να βγεις χωρίς αδιάβροχο.','Πιθανές ψιχάλες. Πάρε αδιάβροχο και φτερά, και άφησε περισσότερη απόσταση στα φρένα.','Βροχή και γλιστερός δρόμος. Αν βγεις, πήγαινε αργά στις στροφές. Εναλλακτικά κάνε προπόνηση στο trainer.'],
+    f:['Καθαρή ορατότητα.','Θολούρα στον δρόμο. Άναψε φώτα μπροστά και πίσω.','Πυκνή ομίχλη με ορατότητα κάτω από 1 χλμ. Οι οδηγοί δε θα σε δουν. Αν βγεις, βάλε φώτα, ανακλαστικό γιλέκο και μείνε μακριά από κεντρικούς δρόμους.'],
+    w:['Ήπιος αέρας. Εύκολη διαδρομή προς κάθε κατεύθυνση.','Αισθητός αέρας. Ξεκίνα με αντίθετο άνεμο και γύρνα με πίσω άνεμο.','Δυνατός άνεμος με ριπές. Απόφυγε γέφυρες, παραλιακούς και ανοιχτούς δρόμους, και τους βαθιούς τροχούς.']
+  };
+  function dayName(d,idx){ return idx===0 ? 'Σήμερα' : (idx===1 ? 'Αύριο' : new Date(d+'T12:00:00Z').toLocaleDateString('el-GR',{weekday:'long',timeZone:'UTC'})); }
+  function isTsipro(g){
+    var rainy = {};
+    g.forEach(function(x){ if(x.r>=1) rainy[parseInt(x.t.slice(11,13),10)] = true; });
+    for(var h=10; h<=20; h++){ if(!rainy[h]) return false; }
+    return true;
+  }
+  function verdictText(o){ return ['Βγες χωρίς σκέψη','Βγες με προσοχή','Καλύτερα όχι τώρα'][o]; }
+
+  function render(){
+    var hrs = state.hours;
+    if(!hrs.length){ $('#status').textContent = 'Δεν υπάρχουν δεδομένα πρόβλεψης.'; return; }
+    var hz = hrs.slice(0, state.horizon);
+    var maxR = Math.max.apply(null, hz.map(function(x){return x.r;})),
+        maxF = Math.max.apply(null, hz.map(function(x){return x.f;})),
+        maxW = Math.max.apply(null, hz.map(function(x){return x.w;})),
+        maxO = Math.max(maxR,maxF,maxW);
+    var ir = worstIdx(hz,function(x){return x.pop + x.mm*20;}),
+        iff = worstIdx(hz,function(x){return -x.vis;}),
+        iw = worstIdx(hz,function(x){return x.gust;});
+    var now = new Date();
+    $('#status').textContent = state.city.n + ' · ενημερώθηκε ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + (state.demo ? ' · δείγμα δεδομένων' : '');
+    var ban = $('#banner');
+    if(state.demo){
+      ban.hidden = false;
+      ban.textContent = 'Δείγμα δεδομένων. Από αυτή την προβολή δεν γίνεται φόρτωση ζωντανού καιρού. Άνοιξε το αρχείο .html της εφαρμογής σε κανονικό πρόγραμμα περιήγησης (Chrome, Safari) για την πραγματική πρόβλεψη.';
+    } else { ban.hidden = true; }
+
+    var groups = {}, order = [];
+    hrs.forEach(function(x){ var d = x.t.slice(0,10); if(!groups[d]){ groups[d]=[]; order.push(d); } groups[d].push(x); });
+    var tsiDay = null, tsiIdx = -1;
+    order.forEach(function(d,idx){ if(tsiDay===null && isTsipro(groups[d])){ tsiDay = d; tsiIdx = idx; } });
+
+    /* hero */
+    var feels = hz.map(function(x){return x.feels;}), fMin = Math.min.apply(null,feels), fMax = Math.max.apply(null,feels);
+    var tref = 0.5*avg(feels) + 0.5*fMin;
+    var culprits = [];
+    if(maxR>=1) culprits.push('βροχή γύρω στις '+hh(hz[ir].t));
+    if(maxF>=1) culprits.push('ομίχλη γύρω στις '+hh(hz[iff].t));
+    if(maxW>=1) culprits.push('δυνατός άνεμος γύρω στις '+hh(hz[iw].t));
+    var why = culprits.length ? 'Στις επόμενες '+state.horizon+' ώρες: '+culprits.join(', ')+'.' : 'Στις επόμενες '+state.horizon+' ώρες δεν βλέπουμε βροχή, ομίχλη ή δυνατό άνεμο.';
+    var bw = bestWindow(hrs), bestHtml;
+    if(bw){
+      var L = bw.list;
+      bestHtml = '<div class="best'+(bw.mode ? ' none' : '')+'">'+ico('i-bike')+'<span>'+(bw.mode ? 'Ηπιότερο διάστημα' : 'Καλύτερη ώρα εξόδου')+': <b>'+hh(L[0].t)+' – '+endLabel(L[L.length-1].t)+'</b> ('+L.length+' ώρες)</span></div>';
+    } else {
+      bestHtml = '<div class="best none">'+ico('i-bike')+'<span>Στις επόμενες 24 ώρες δεν υπάρχει άνετο διάστημα για βόλτα.</span></div>';
+    }
+    var heroIcon = maxO===0 ? 'i-sun' : (maxR>=maxF && maxR>=maxW && maxR>=1 ? 'i-rain' : (maxF>=maxW && maxF>=1 ? 'i-fog' : 'i-wind'));
+    var stormHtml = tsiDay ? '<div class="storm" role="status">'+ico('i-rain')+'<div><b>Καραμπινάτη Τσιπρομέρα</b><span>Βροχή από 10:00 έως 20:00, '+dayName(tsiDay,tsiIdx).toLowerCase()+'.</span></div></div>' : '';
+    $('#hero').innerHTML = stormHtml +
+      '<div class="main"><div class="tile l'+maxO+'">'+ico(heroIcon)+'</div><div class="txt">'+pill(maxO)+'<h2>'+verdictText(maxO)+'</h2><p class="why">'+why+'</p>'+bestHtml+'</div></div>'+
+      '<div class="temp"><span class="cap">Αίσθηση θερμοκρασίας</span><span class="num">'+fmt(tref)+'<sup>°C</sup></span><span class="rng">Από '+fmt(fMin)+'° έως '+fmt(fMax)+'° τις επόμενες '+state.horizon+' ώρες</span></div>';
+
+    /* clothing */
+    var cl = clothing(tref, maxR, maxF, maxW, fMax - fMin);
+    var rows = cl.rows.map(function(r){ return '<div><dt>'+r[0]+'</dt><dd>'+r[1]+'</dd></div>'; }).join('');
+    var carry = cl.carry.length ? '<div class="carry"><span class="cl">Πάρε μαζί</span>'+cl.carry.map(function(c){ return '<span class="c">'+c+'</span>'; }).join('')+'</div>' : '';
+    $('#wear').innerHTML = riderSVG(cl.kit) +
+      '<div class="info"><div><h3>'+TIER_NAME[cl.ti]+', αίσθηση '+fmt(tref)+'°</h3>'+(cl.note ? '<p class="lead">'+cl.note+'</p>' : '')+'</div><dl class="rows">'+rows+'</dl>'+carry+'</div>';
+
+    /* metric cards */
+    var pr = hz[ir], pf = hz[iff], pw = hz[iw];
+    var totalMm = hz.reduce(function(a,x){return a+x.mm;},0);
+    var t0 = hh(hz[0].t), t1 = endLabel(hz[hz.length-1].t), tm = hh(hz[Math.floor(hz.length/2)].t);
+    var cards = '';
+    cards += '<article class="card mcard"><div class="mhead"><div class="l"><div class="tile l'+maxR+'">'+ico('i-rain')+'</div><h3>Βροχή</h3></div>'+pill(maxR)+'</div>'+
+      '<div><div class="big">'+fmt(pr.pop)+'<small>% μέγιστη πιθανότητα</small></div><div class="sub">Γύρω στις '+hh(pr.t)+'. Συνολικά '+fmt(totalMm,1)+' mm στο διάστημα.</div></div>'+
+      '<div><div class="chartcap">Πιθανότητα βροχής ανά ώρα</div>'+chart({vals:hz.map(function(x){return x.pop;}), lvs:hz.map(function(x){return x.r;}), labs:hz.map(function(x){return hh(x.t)+': '+fmt(x.pop)+'%';}), ymax:100, ticks:[0,35,70,100], thr:[35,70], tickFmt:function(v){return v+'%';}, t0:t0, tm:tm, t1:t1, aria:'Πιθανότητα βροχής ανά ώρα, μέγιστη '+fmt(pr.pop)+'%'})+'</div>'+
+      '<p class="tip">'+TIPS.r[maxR]+'</p></article>';
+    cards += '<article class="card mcard"><div class="mhead"><div class="l"><div class="tile l'+maxF+'">'+ico('i-fog')+'</div><h3>Ομίχλη</h3></div>'+pill(maxF)+'</div>'+
+      '<div><div class="big">'+km(pf.vis)+'<small>ελάχιστη ορατότητα</small></div><div class="sub">Γύρω στις '+hh(pf.t)+'.</div></div>'+
+      '<div><div class="chartcap">Ορατότητα ανά ώρα, χλμ</div>'+chart({vals:hz.map(function(x){return Math.min(x.vis/1000,10);}), lvs:hz.map(function(x){return x.f;}), labs:hz.map(function(x){return hh(x.t)+': '+km(x.vis);}), ymax:10, ticks:[0,1,5,10], thr:[5,1].sort(function(a,b){return a-b;}), tickFmt:function(v){return String(v);}, t0:t0, tm:tm, t1:t1, aria:'Ορατότητα ανά ώρα, ελάχιστη '+km(pf.vis)})+'</div>'+
+      '<p class="tip">'+TIPS.f[maxF]+'</p></article>';
+    cards += '<article class="card mcard"><div class="mhead"><div class="l"><div class="tile l'+maxW+'">'+ico('i-wind')+'</div><h3>Άνεμος</h3></div>'+pill(maxW)+'</div>'+
+      '<div><div class="big">'+fmt(pw.wind)+'<small>χλμ/ώρα, ριπές έως '+fmt(pw.gust)+'</small></div><div class="sub"><span class="dir"><svg class="ic" style="transform:rotate('+(pw.dir+180)+'deg)" aria-hidden="true"><use href="#i-arrow"/></svg>Φυσάει από '+compass(pw.dir)+', γύρω στις '+hh(pw.t)+'.</span></div></div>'+
+      '<div><div class="chartcap">Ριπές ανά ώρα, χλμ/ώρα</div>'+chart({vals:hz.map(function(x){return x.gust;}), lvs:hz.map(function(x){return x.w;}), labs:hz.map(function(x){return hh(x.t)+': '+fmt(x.gust)+' χλμ/ώρα';}), ymax:70, ticks:[0,35,50,70], thr:[35,50], tickFmt:function(v){return String(v);}, t0:t0, tm:tm, t1:t1, aria:'Ριπές ανέμου ανά ώρα, μέγιστη '+fmt(pw.gust)+' χλμ/ώρα'})+'</div>'+
+      '<p class="tip">'+TIPS.w[maxW]+'</p></article>';
+    $('#cards').innerHTML = cards;
+
+    /* hourly table */
+    var sp = hrs.slice(0,24);
+    var rowH = '<tr class="hd"><th class="row" scope="row">Ώρα</th>', rowI = '<tr><th class="row" scope="row">Καιρός</th>',
+        rowT = '<tr><th class="row" scope="row">Θερμοκρασία</th>', rowA = '<tr><th class="row" scope="row">Αίσθηση</th>', rowR = '<tr><th class="row" scope="row">Βροχή</th>',
+        rowF = '<tr><th class="row" scope="row">Ορατότητα</th>', rowW = '<tr><th class="row" scope="row">Άνεμος</th>', rowG = '<tr><th class="row" scope="row">Ριπές</th>';
+    sp.forEach(function(x){
+      var icon = x.r>=1 ? 'i-rain' : (x.f>=1 ? 'i-fog' : (x.pop>=20 ? 'i-cloud' : 'i-sun'));
+      rowH += '<td>'+hh(x.t)+'</td>';
+      rowI += '<td>'+ico(icon)+'</td>';
+      rowT += '<td>'+fmt(x.temp)+'°</td>';
+      rowA += '<td>'+fmt(x.feels)+'°</td>';
+      rowR += '<td class="l'+x.r+'">'+fmt(x.pop)+'%'+(x.mm>0 ? '<br><small>'+fmt(x.mm,1)+' mm</small>' : '')+'</td>';
+      rowF += '<td class="l'+x.f+'">'+km(x.vis)+'</td>';
+      rowW += '<td class="l'+x.w+'"><svg class="arr" style="transform:rotate('+(x.dir+180)+'deg)" aria-hidden="true"><use href="#i-arrow"/></svg>'+fmt(x.wind)+'</td>';
+      rowG += '<td class="l'+x.w+'">'+fmt(x.gust)+'</td>';
+    });
+    $('#strip').innerHTML = '<table><caption style="position:absolute;left:-9999px">Πρόβλεψη ανά ώρα</caption><tbody>'+[rowH,rowI,rowT,rowA,rowR,rowF,rowW,rowG].map(function(r){return r+'</tr>';}).join('')+'</tbody></table>';
+
+    /* days */
+    var dh = '';
+    order.forEach(function(d,idx){
+      var g = groups[d];
+      var tmin = Math.min.apply(null,g.map(function(x){return x.temp;})), tmax = Math.max.apply(null,g.map(function(x){return x.temp;}));
+      var pmax = Math.max.apply(null,g.map(function(x){return x.pop;})), vmin = Math.min.apply(null,g.map(function(x){return x.vis;})), gmax = Math.max.apply(null,g.map(function(x){return x.gust;}));
+      var o = Math.max.apply(null,g.map(function(x){return x.o;}));
+      var name = dayName(d,idx);
+      dh += '<article class="card day"><div class="mhead"><h3>'+name+'</h3>'+pill(o)+'</div>'+(d===tsiDay ? '<span class="stormtag">Καραμπινάτη Τσιπρομέρα</span>' : '')+'<dl>'+
+        '<dt>Θερμοκρασία</dt><dd>'+fmt(tmin)+'° έως '+fmt(tmax)+'°</dd>'+
+        '<dt>Βροχή, μέγιστη</dt><dd>'+fmt(pmax)+'%</dd>'+
+        '<dt>Ορατότητα, ελάχιστη</dt><dd>'+km(vmin)+'</dd>'+
+        '<dt>Ριπές, μέγιστες</dt><dd>'+fmt(gmax)+' χλμ/ώρα</dd></dl></article>';
+    });
+    $('#days').innerHTML = dh;
+  }
+
+  /* ---------- Controls ---------- */
+  var sel = $('#city');
+  CITIES.forEach(function(c,i){ var o = document.createElement('option'); o.value = i; o.textContent = c.n; sel.appendChild(o); });
+  try { var saved = localStorage.getItem('kp-city'); if(saved!==null && CITIES[+saved]){ sel.value = saved; state.city = CITIES[+saved]; } } catch(e){}
+  sel.addEventListener('change', function(){
+    if(sel.value==='c' && state.custom){ state.city = state.custom; }
+    else {
+      state.city = CITIES[+sel.value];
+      try { localStorage.setItem('kp-city', sel.value); localStorage.removeItem('kp-custom'); } catch(e){}
+    }
+    load();
+  });
+  function useCustom(c, persist){
+    state.custom = c; state.city = c;
+    var opt = sel.querySelector('option[value="c"]');
+    if(!opt){ opt = document.createElement('option'); opt.value = 'c'; sel.insertBefore(opt, sel.firstChild); }
+    opt.textContent = c.n;
+    sel.value = 'c';
+    if(persist){ try { localStorage.setItem('kp-custom', JSON.stringify(c)); } catch(e){} }
+  }
+  try {
+    var sc = JSON.parse(localStorage.getItem('kp-custom') || 'null');
+    if(sc && typeof sc.la==='number' && typeof sc.lo==='number' && sc.n){ useCustom(sc, false); }
+  } catch(e){}
+
+  var resBox = $('#results');
+  function showMsg(t){ resBox.innerHTML = '<li class="msg"></li>'; resBox.firstChild.textContent = t; resBox.hidden = false; }
+  $('#searchForm').addEventListener('submit', function(ev){
+    ev.preventDefault();
+    var q = $('#q').value.trim();
+    if(q.length < 2){ showMsg('Γράψε τουλάχιστον δύο γράμματα.'); return; }
+    showMsg('Αναζήτηση…');
+    var ctl = ('AbortController' in window) ? new AbortController() : null;
+    var timer = setTimeout(function(){ if(ctl) ctl.abort(); }, 8000);
+    fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(q)+'&count=8&language=el&format=json', ctl ? {signal:ctl.signal} : undefined)
+      .then(function(r){ if(!r.ok) throw new Error('http'); return r.json(); })
+      .then(function(j){
+        clearTimeout(timer);
+        var list = j.results || [];
+        if(!list.length){ showMsg('Δεν βρέθηκε «'+q+'». Δοκίμασε άλλη γραφή.'); return; }
+        resBox.innerHTML = '';
+        list.forEach(function(r){
+          var li = document.createElement('li'), b = document.createElement('button'), s = document.createElement('small');
+          b.type = 'button';
+          b.appendChild(document.createTextNode(r.name));
+          s.textContent = [r.admin1, r.country].filter(Boolean).join(', ') + (r.elevation!=null ? ' · υψόμετρο '+Math.round(r.elevation)+' μ.' : '');
+          b.appendChild(s);
+          b.addEventListener('click', function(){
+            useCustom({n: r.name + (r.admin1 ? ', '+r.admin1 : ''), la:+(+r.latitude).toFixed(3), lo:+(+r.longitude).toFixed(3)}, true);
+            resBox.hidden = true; $('#q').value = '';
+            load();
+          });
+          li.appendChild(b); resBox.appendChild(li);
+        });
+        resBox.hidden = false;
+      })
+      .catch(function(){ clearTimeout(timer); showMsg('Η αναζήτηση δεν είναι διαθέσιμη σε αυτή την προβολή. Άνοιξε το αρχείο της εφαρμογής σε Chrome ή Safari.'); });
+  });
+  $('#q').addEventListener('input', function(){ if(!this.value) resBox.hidden = true; });
+  $('#refresh').addEventListener('click', load);
+  $('#loc').addEventListener('click', function(){
+    if(!navigator.geolocation){ $('#status').textContent = 'Η συσκευή δεν δίνει τοποθεσία. Διάλεξε πόλη από τη λίστα.'; return; }
+    $('#status').textContent = 'Αναζήτηση τοποθεσίας…';
+    try {
+      navigator.geolocation.getCurrentPosition(function(p){
+        state.city = {n:'Η τοποθεσία μου', la:+p.coords.latitude.toFixed(2), lo:+p.coords.longitude.toFixed(2)};
+        load();
+      }, function(){ $('#status').textContent = 'Δεν δόθηκε πρόσβαση στην τοποθεσία. Διάλεξε πόλη από τη λίστα.'; }, {timeout:8000});
+    } catch(e){ $('#status').textContent = 'Δεν δόθηκε πρόσβαση στην τοποθεσία. Διάλεξε πόλη από τη λίστα.'; }
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.seg button'), function(b){
+    b.addEventListener('click', function(){
+      state.horizon = +b.getAttribute('data-h');
+      Array.prototype.forEach.call(document.querySelectorAll('.seg button'), function(x){ x.setAttribute('aria-pressed', x===b ? 'true' : 'false'); });
+      if(state.hours.length) render();
+    });
+  });
+  load();
+})();
+</script>
